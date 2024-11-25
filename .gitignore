@@ -4,3 +4,8 @@ Shell/old/
 *.o
 *.a
 ALTE ABGABE/
+/ALTE ABGABE/srv
+ALTE ABGABE/srv/server.c
+Network Shell/Work/.srv_pid
+Network Shell/Work/client
+Network Shell/Work/server
