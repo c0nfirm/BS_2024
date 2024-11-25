@@ -211,7 +211,6 @@ int server_get(char **args, FILE *fh){
 	fflush(fh);
 	return 1;
 }
-
 int server_put(char **args, FILE *fh){
 	int length = atoi(args[2]);
 	int filebuffer;
@@ -228,7 +227,6 @@ int server_put(char **args, FILE *fh){
 	fclose(file);
 	return 1;
 }
-
 int server_wall(char **args, Server *s){
 	pthread_mutex_lock(&s->lock);
 	memcpy(s->last_message, args[1], 1024);
@@ -376,7 +374,6 @@ void *server(void *arg){
 
 	return NULL;
 }
-
 void *worker(void *arg){
 	Worker *w = arg;
 	Server *s = w->s;
