@@ -4,10 +4,40 @@
 #include <netinet/in.h> /*struct storing addr info*/
 #include <sys/socket.h> /*socket api*/
 #include <sys/types.h>
-#include <arpa/inet.h>
+#include <arpa/inet.h>	/*inet_addr()*/
+#include <unistd.h>		/*read(), write(), close()*/
+#include <string.h>
 
 #define PORT 9000
 #define HOST "127.0.0.1"
+#define MAX 128
+
+void func(int c_socked){
+	char buf[MAX];
+	int n;
+
+	/*infinite loop*/
+	for(;;){
+		/*clears any data in buf by overwriting it with zero "\0" */
+		bzero(buf, MAX);
+		/*read msg from client*/
+		read(c_socked, buf, sizeof(buf));
+		/*print buf (client contents)*/
+		printf("&> %s", buf);
+		/*clears any data in buf by overwriting it with zero "\0" */
+		bzero(buf, MAX);
+		n = 0;
+		/*server msg --> buf*/
+		while((buf[n++] = getchar()) != '\n');
+		/*send buf ---> client*/
+		write(c_socked, buf, sizeof(buf));
+		/*msg "exit" = server closed + chat end*/
+		if(strncmp("exit", buf, 4) == 0){
+			printf("Server Exit...\n");
+			break;
+		}
+	}
+}
 
 int main(int argc, char const* argv[]){
 	/*create server socket similar to client socket*/
@@ -34,5 +64,8 @@ int main(int argc, char const* argv[]){
 	/*send sever msg to client socket*/
 	send(c_socket, serMsg, sizeof(serMsg), 0);
 
-	return 0;
+	/*server --> client functions*/
+	func(c_socket);
+
+	close(servSockD);
 }
