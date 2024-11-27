@@ -2,62 +2,39 @@
 #include <stdlib.h>
 
 #include <unistd.h>
-#include <netinet/in.h>
+#include <netinet/in.h> /*structure for storing address info*/
+#include <sys/socket.h> /*socket api*/
+#include <sys/types.h>
 #include <arpa/inet.h>
 
 #define PORT 9000
 #define HOST "127.0.0.1"
 
-/*Error Catch*/
-static inline void die(const char *msg){
-	perror(msg);
-	exit(-1);
-}
+int main(int argc, char const* argv[]){
+	int sockD = socket(AF_INET, SOCK_STREAM, 0); /*client socket (Domain, Type, IP)*/
 
-int main(){
-	/*connection to server*/
-	struct sockaddr_in addr = {
-		.sin_family = AF_INET,
-		.sin_port = htons(PORT),
-		.sin_addr.s_addr = inet_addr(HOST)
-	};
+	struct sockaddr_in serv_addr;	/*connection address*/
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(PORT);	/*server port*/
+	serv_addr.sin_addr.s_addr = inet_addr(HOST);
 
-	char buf[256];
-	int cfd;
-
-	if((cfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		die("Couldn't open the socket!");
+	/*trying to connect*/
+	int connectStatus = connect(sockD, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
+	if(connectStatus == -1){printf("Error...\n");}
 	
-	if(connect(cfd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
-		die("Couldn't connect to socket!");
-
-	/*commands and den server*/
-	for(int i = 0; i < 5; i++){
-		if(write(cfd, "Ping", 4) < 0)
-			die("Couldn't send message!");
-		printf("[send] Ping\n");
-
-		if(read(cfd, buf, sizeof(buf)) < 0)
-			die("Couldn't recieve message!");
-		printf("[recv] %s\n", buf);		
-	}	
+	/*command to server | recv = rectrieve data*/
+	else{
+		char strData[255];
+		recv(sockD, strData, sizeof(strData), 0);
+		printf("Message: %s\n", strData);
+	}
 	
-	close(cfd);
 	return 0;
 }
 
-int shell_exit();
-/*Client Put*/
-int c_put(char **args);
-/*Client Get*/
-int c_get(char **args);
-/*start server connection*/
-int launch(char **args, int argcount);
-/*reads input line from stdin and returns it*/
-char *read_line(void);
-/*  Splits the input line into tokens
-    returns a null terminated array of tokens
-*/
-char **split_line(char *line, int *argcount);
-/*shell commands*/
-int run(char **args, int argccount);
+
+/*TODO - focus s/c verhalten
+CD <Pfad>- wechshel des aktuellen verzeichnisses
+EXIT - disconnect client <> server
+GET <Pfad> - dl Datei < server
+PUT <Pfad> - ul Datei > server*/
