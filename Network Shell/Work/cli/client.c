@@ -25,11 +25,11 @@ void func (int sockD){
 		n = 0;
 		while((buf[n++] = getchar()) != '\n');
 		
-		write(sockD, buf, sizeof(buf));
+		//write(sockD, buf, sizeof(buf));
 		bzero(buf, sizeof(buf));
-		read(sockD, buf, sizeof(buf));
+		//read(sockD, buf, sizeof(buf));
 
-		printf("From Server %s", buf);
+		printf("From Server: %s", buf);
 
 		if((strncmp(buf, "exit", 4)) == 0){
 			printf("Client Exit...\n");
@@ -40,8 +40,12 @@ void func (int sockD){
 }
 
 int main(int argc, char const* argv[]){
-	int sockD = socket(AF_INET, SOCK_STREAM, 0); /*client socket (Domain, Type, IP)*/
+	/*client socket (Domain, Type, IP)*/
+	int sockD = socket(AF_INET, SOCK_STREAM, 0);
 
+	/*data sent to client*/
+	char cliMsg[255] = " \'Hello server\' ";
+	
 	struct sockaddr_in serv_addr;	/*connection address*/
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(PORT);	/*server port*/
@@ -49,18 +53,21 @@ int main(int argc, char const* argv[]){
 
 	/*trying to connect*/
 	int connectStatus = connect(sockD, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
-	if(connectStatus == -1){printf("Error...\n");}
-	
-	/*command to server | recv = rectrieve data*/
-	else{
+	if(connectStatus == -1){
+		printf("Error...\n");
+	}else{
 		char strData[255];
+		/*command to server | recv = rectrieve data*/
 		recv(sockD, strData, sizeof(strData), 0);
 		printf("Message: %s\n", strData);
+		
+		/*send sever msg to client socket*/
+		send(sockD, cliMsg, sizeof(cliMsg), 0)
+		
+		;/*usr input relayed client -> server*/
+		func(sockD);
 	}
 	
-	/*usr input relayed client -> server*/
-	func(sockD);
-
 	/*close the socket*/
 	close(sockD);
 }
