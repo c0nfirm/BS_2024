@@ -19,23 +19,25 @@ void func (int sockD){
 
 	/*infinite loop*/
 	for(;;){
+		printf("$> ");
 		/*clears any data in buf by overwriting it with zero "\0" */
 		bzero(buf, sizeof(buf));
-		printf("$> ");
+		
 		n = 0;
 		while((buf[n++] = getchar()) != '\n');
 		
 		//write(sockD, buf, sizeof(buf));
+		send(sockD, buf, sizeof(buf), 0);
+		printf("&>Msg to sev: %s", buf);
 		bzero(buf, sizeof(buf));
-		//read(sockD, buf, sizeof(buf));
-
-		printf("From Server: %s", buf);
+		
+		recv(sockD, buf, sizeof(buf), 0);
+		printf("From Server: %s\n", buf);
 
 		if((strncmp(buf, "exit", 4)) == 0){
 			printf("Client Exit...\n");
 			break;
 		}
-
 	}
 }
 

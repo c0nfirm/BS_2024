@@ -17,49 +17,48 @@ void func(int c_socked){
 	char buf[MAX];
 	//int n;
 	
-
 	/*infinite loop*/
 	for(;;){
 		/*clears any data in buf by overwriting it with zero "\0" */
 		bzero(buf, MAX);
 		/*read msg from client*/
-		//read(c_socked, buf, sizeof(buf));
+		recv(c_socked, buf, sizeof(buf), 0);
 
 		/* cd <path> - command from client*/
 		if(strncmp("cd ",buf, 3) == 0){
 			printf("&> Client send 'cd'");
+			bzero(buf, MAX);
+			strcpy(buf, "cd <path>");
+			send(c_socked, buf, sizeof(buf), 0);
 		}
 		/* get <file> - command from client*/
 		if(strncmp("get ",buf, 4) == 0){
 			printf("&> Client send 'get'");
+			bzero(buf, MAX);
+			strcpy(buf, "get <file>");
+			send(c_socked, buf, sizeof(buf), 0);
 		}
 		/* put <file> - command from client*/
 		if(strncmp("put ",buf, 4) == 0){
 			printf("&> Client send 'put'");
+			bzero(buf, MAX);
+			strcpy(buf, "put <file>");
+			send(c_socked, buf, sizeof(buf), 0);
 		}
 		/* ./<prog> - command from client*/
-		if(strncmp("./ ",buf, 3) == 0){
+		if(strncmp("./",buf, 2) == 0){
 			printf("&> Client send './'");
+			bzero(buf, MAX);
+			strcpy(buf, "./<prog>");
+			send(c_socked, buf, sizeof(buf), 0);
 		}
 		/* exit - command from client*/
-		if(strncmp("exit ",buf, 5) == 0){
+		if(strncmp("exit\n",buf, 5) == 0){
 			printf("&> Client send 'exit'");
+			bzero(buf, MAX);
+			strcpy(buf, "exit");
+			send(c_socked, buf, sizeof(buf), 0);
 		}
-
-		/*print buf (client contents)
-		printf("&> %s", buf);
-		clears any data in buf by overwriting it with zero "\0"
-		bzero(buf, MAX);
-		n = 0;
-		server msg --> buf
-		while((buf[n++] = getchar()) != '\n');
-		send buf ---> client
-		write(c_socked, buf, sizeof(buf));
-		msg "exit" = server closed + chat end
-		if(strncmp("exit", buf, 4) == 0){
-			printf("Server Exit...\n");
-			break;
-		}*/
 	}
 }
 
@@ -68,7 +67,7 @@ int main(int argc, char const* argv[]){
 	int servSockD = socket(AF_INET, SOCK_STREAM, 0);
 
 	/*data sent to client*/
-	char serMsg[255] = " \'Hello Client\' ";
+	char serMsg[255] = " \'Hello Client\' ", strData[255];
 
 	/*define server addr*/
 	struct sockaddr_in serv_Addr;
@@ -89,7 +88,6 @@ int main(int argc, char const* argv[]){
 	send(c_socket, serMsg, sizeof(serMsg), 0);
 
 	/*command to server | recv = rectrieve data*/
-	char strData[255];
 	recv(c_socket, strData, sizeof(strData), 0);
 	printf("Message: %s\n", strData);
 	
