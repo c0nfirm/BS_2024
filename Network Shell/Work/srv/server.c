@@ -15,7 +15,6 @@
 void func(int c_socked){
 	printf("&> test_func_start");
 	char buf[MAX];
-	//int n;
 	
 	/*infinite loop*/
 	for(;;){
@@ -68,6 +67,7 @@ int main(int argc, char const* argv[]){
 
 	/*data sent to client*/
 	char serMsg[255] = " \'Hello Client\' ", strData[255];
+	//char m_buf[MAX];int n;
 
 	/*define server addr*/
 	struct sockaddr_in serv_Addr;
@@ -97,3 +97,31 @@ int main(int argc, char const* argv[]){
 
 	close(servSockD);
 }
+
+
+/*while(;;){
+	listen for connections
+	listen(servSockD, 1);
+	
+	INT to hold client socket
+	int c_socket = accept(servSockD, NULL, NULL);
+
+	send sever msg to client socket
+	send(c_socket, serMsg, sizeof(serMsg), 0);
+
+	command to server | recv = rectrieve data
+	recv(c_socket, strData, sizeof(strData), 0);
+	printf("Message: %s\n", strData);
+
+	server --> client functions
+	printf("&> test_bf_func");
+	func(c_socket);
+
+	n = 0;
+		while((m_buf[n++] = getchar()) != '\n');
+		if(strncmp("exit\n",m_buf, 5) == 0){
+			printf("Server Closed");
+			bzero(m_buf, MAX);
+			break;
+		}
+}*/
