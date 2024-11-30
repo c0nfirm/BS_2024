@@ -14,7 +14,9 @@
 
 void func(int c_socked){
 	printf("&> test_func_start");
-	char buf[MAX];
+	char buf[MAX], tmp[MAX];
+	FILE *out;
+	int n = 0;
 	
 	/*infinite loop*/
 	for(;;){
@@ -23,37 +25,54 @@ void func(int c_socked){
 		/*read msg from client*/
 		recv(c_socked, buf, sizeof(buf), 0);
 
-		/* cd <path> - command from client*/
-		if(strncmp("cd ",buf, 3) == 0){
-			printf("&> Client send 'cd'");
+		/* ls - command from client*/
+		if(strncmp("ls\n",buf, 3) == 0){
+			/*execute linux cmd ls*/
+			out = popen("ls -a", "r");
 			bzero(buf, MAX);
-			strcpy(buf, "cd <path>");
+			if(out == NULL){fputs("POPEN: Failed to execute command ls.\n", stderr);}
+			else{
+				while(fgets(tmp, MAX-1, out) != NULL){
+					strcat(buf, tmp);
+				}
+			}
+			pclose(out);
+
 			send(c_socked, buf, sizeof(buf), 0);
+		}
+		/* cd <path> - command from client*/
+		if(memcmp("cd ",buf, 3) == 0 || memcmp("cd\n", buf, 3) == 0){
+			out = popen(buf, "r");
+			bzero(buf, MAX);
+
+			if(out == NULL){fputs("POPEN: Failed to execute command ls.\n", stderr);}
+			else{
+				if(getcwd(buf, MAX) != NULL){
+					send(c_socked, buf, sizeof(buf), 0);
+				}
+			}	
+			pclose(out);
 		}
 		/* get <file> - command from client*/
 		if(strncmp("get ",buf, 4) == 0){
-			printf("&> Client send 'get'");
 			bzero(buf, MAX);
 			strcpy(buf, "get <file>");
 			send(c_socked, buf, sizeof(buf), 0);
 		}
 		/* put <file> - command from client*/
 		if(strncmp("put ",buf, 4) == 0){
-			printf("&> Client send 'put'");
 			bzero(buf, MAX);
 			strcpy(buf, "put <file>");
 			send(c_socked, buf, sizeof(buf), 0);
 		}
 		/* ./<prog> - command from client*/
 		if(strncmp("./",buf, 2) == 0){
-			printf("&> Client send './'");
 			bzero(buf, MAX);
 			strcpy(buf, "./<prog>");
 			send(c_socked, buf, sizeof(buf), 0);
 		}
 		/* exit - command from client*/
 		if(strncmp("exit\n",buf, 5) == 0){
-			printf("&> Client send 'exit'");
 			bzero(buf, MAX);
 			strcpy(buf, "exit");
 			send(c_socked, buf, sizeof(buf), 0);

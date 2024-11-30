@@ -32,7 +32,7 @@ void func (int sockD){
 		bzero(buf, sizeof(buf));
 		
 		recv(sockD, buf, sizeof(buf), 0);
-		printf("From Server: %s\n", buf);
+		printf("From Server: %s", buf);
 
 		if((strncmp(buf, "exit", 4)) == 0){
 			printf("Client Exit...\n");
