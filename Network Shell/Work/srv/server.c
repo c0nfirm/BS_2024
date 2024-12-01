@@ -14,9 +14,9 @@
 
 void func(int c_socked){
 	printf("&> test_func_start");
-	char buf[MAX], tmp[MAX];
+	char buf[MAX], tmp[MAX], home_dir[MAX];
 	FILE *out;
-	int n = 0;
+	if(getcwd(home_dir, MAX) == 0){}
 	
 	/*infinite loop*/
 	for(;;){
@@ -24,14 +24,17 @@ void func(int c_socked){
 		bzero(buf, MAX);
 		/*read msg from client*/
 		recv(c_socked, buf, sizeof(buf), 0);
+		printf("FIRST RECV: %s\n", buf);
 
 		/* ls - command from client*/
 		if(strncmp("ls\n",buf, 3) == 0){
+			printf("IN LS\n");
 			/*execute linux cmd ls*/
 			out = popen("ls -a", "r");
 			bzero(buf, MAX);
 			if(out == NULL){fputs("POPEN: Failed to execute command ls.\n", stderr);}
 			else{
+				printf("ELSE LS\n");
 				while(fgets(tmp, MAX-1, out) != NULL){
 					strcat(buf, tmp);
 				}
@@ -42,28 +45,43 @@ void func(int c_socked){
 		}
 		/* cd <path> - command from client*/
 		if(memcmp("cd ",buf, 3) == 0 || memcmp("cd\n", buf, 3) == 0){
-			out = popen(buf, "r");
+			printf("NORMAL CD\n");
+			char path[MAX];
+			strcpy(path, buf);
+			size_t len = strlen(path);
+			memmove(path, path+3, len - 3 + 1);
+			printf("abgeschnitten: %s\n", path);
+			strtok(path, "\n");
+
 			bzero(buf, MAX);
 
-			if(out == NULL){fputs("POPEN: Failed to execute command ls.\n", stderr);}
-			else{
+			if(chdir(path) == 0){
 				if(getcwd(buf, MAX) != NULL){
+					printf("cwd: %s\n", buf);
+					strcat(buf, "\n");
 					send(c_socked, buf, sizeof(buf), 0);
 				}
-			}	
-			pclose(out);
+			}else{
+				if(chdir(home_dir) == 0){
+					if(getcwd(buf, MAX) != NULL){
+						printf("cwd: %s\n", buf);
+						strcat(buf, "\n");
+						send(c_socked, buf, sizeof(buf), 0);
+					}
+				}
+			}
 		}
 		/* get <file> - command from client*/
 		if(strncmp("get ",buf, 4) == 0){
-			bzero(buf, MAX);
-			strcpy(buf, "get <file>");
+  			bzero(buf, MAX);
+			strcpy(buf, "get");
 			send(c_socked, buf, sizeof(buf), 0);
 		}
 		/* put <file> - command from client*/
 		if(strncmp("put ",buf, 4) == 0){
 			bzero(buf, MAX);
-			strcpy(buf, "put <file>");
-			send(c_socked, buf, sizeof(buf), 0);
+			strcpy(buf, "put");
+			send(c_socked, "successful", sizeof(buf), 0);
 		}
 		/* ./<prog> - command from client*/
 		if(strncmp("./",buf, 2) == 0){

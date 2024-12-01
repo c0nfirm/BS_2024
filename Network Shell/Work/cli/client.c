@@ -11,10 +11,10 @@
 
 #define PORT 9000
 #define HOST "127.0.0.1"
-#define MAx 128
+#define MAX 128
 
 void func (int sockD){
-	char buf[MAx];
+	char buf[MAX];
 	int n;
 
 	/*infinite loop*/
@@ -28,7 +28,7 @@ void func (int sockD){
 		
 		//write(sockD, buf, sizeof(buf));
 		send(sockD, buf, sizeof(buf), 0);
-		printf("&>Msg to sev: %s", buf);
+		printf("Msg to sev: %s", buf);
 		bzero(buf, sizeof(buf));
 		
 		recv(sockD, buf, sizeof(buf), 0);
