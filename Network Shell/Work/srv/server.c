@@ -11,9 +11,37 @@
 #define PORT 9000
 #define HOST "127.0.0.1"
 #define MAX 128
+#define SIZE 1024
+
+/*void s_writeF(int sockFD){
+	int n;
+	FILE *fp;
+	char name[MAX], path[MAX], cuurr_dir[MAX], *tmp = "test.txt";
+	char data[SIZE];
+	printf("[-] write func\n");
+	fp = fopen(tmp, "wb");
+	printf("[-] fopen\n");
+	printf("[-] TEST_1\n");
+	while(1){	
+		printf("[-] TEST_3\n");
+		recv(sockFD, data, sizeof(data), 0);
+		printf("[-]Data : %s\n", data);
+		if(fputs(data, fp)== EOF){break;}
+		printf("[-]recv = %i\n", n);
+		if(n <= 0){
+			printf("[-] FINISH\n");
+			break;
+		}
+		printf("[-] TEST_4\n");
+		fprintf(fp, "%s", data);
+		bzero(data, SIZE);
+	}
+	fclose(fp);
+	printf("File recieved\n");
+}*/
 
 void func(int c_socked){
-	printf("&> test_func_start");
+	printf("test_func_start\n");
 	char buf[MAX], tmp[MAX], home_dir[MAX];
 	FILE *out;
 	if(getcwd(home_dir, MAX) == 0){}
@@ -27,10 +55,10 @@ void func(int c_socked){
 		printf("FIRST RECV: %s\n", buf);
 
 		/* ls - command from client*/
-		if(strncmp("ls\n",buf, 3) == 0){
+		if(strncmp("ls\n",buf, 3) == 0 || memcmp("ls ", buf, 3) == 0){
 			printf("IN LS\n");
-			/*execute linux cmd ls*/
 			out = popen("ls -a", "r");
+
 			bzero(buf, MAX);
 			if(out == NULL){fputs("POPEN: Failed to execute command ls.\n", stderr);}
 			else{
@@ -81,9 +109,26 @@ void func(int c_socked){
 		}
 		/* put <file> - command from client*/
 		if(strncmp("put ",buf, 4) == 0){
+			printf("[-] buf: %s\n", buf);
+			FILE *fd;
+			char path[MAX], *tmp = "text.txt";
+			fd = fopen(tmp, "w");
+			strcpy(path, buf);
+			printf("[-] path: %s\n", path);
+			size_t len = strlen(path);
+			memmove(path, path+4, len - 4 + 1);
+			printf("abgeschnitten: %s\n", path);
+			strtok(path, "\n");
+			printf("[-] buf: %s\n", path);
+			send(c_socked, path, sizeof(path), 0);
 			bzero(buf, MAX);
-			strcpy(buf, "put");
-			send(c_socked, "successful", sizeof(buf), 0);
+
+			while (1){
+				recv(c_socked, buf, sizeof(buf), 0);
+				printf("[-]Buf : %s\n", buf);
+				fprintf(fd, "%s", buf);
+			}
+			printf("File recieved\n");
 			continue;
 		}
 		/* ./<prog> - command from client*/
@@ -104,7 +149,6 @@ void func(int c_socked){
 			strcpy(buf, "Falsche oder Leere eingabe!\n");
 			send(c_socked, buf, sizeof(buf), 0);
 		}
-
 	}
 }
 
@@ -146,7 +190,7 @@ int main(int argc, char const* argv[]){
 		printf("Message: %s\n", strData);
 
 		/*server --> client functions*/
-		printf("&> test_bf_func\n");
+		printf("test_bf_func\n");
 		func(c_socket);
 
 		printf("If you want to close the server type 'exit'!\n");
@@ -159,25 +203,5 @@ int main(int argc, char const* argv[]){
 			break;
 		}
 	}
-
-	/*listen for connections
-	listen(servSockD, 1);
-
-	INT to hold client socket
-	int c_socket = accept(servSockD, NULL, NULL);
-
-	send sever msg to client socket
-	send(c_socket, serMsg, sizeof(serMsg), 0);
-
-	command to server | recv = rectrieve data
-	recv(c_socket, strData, sizeof(strData), 0);
-	printf("Message: %s\n", strData);
-	
-	server --> client functions
-	printf("&> test_bf_func");
-	func(c_socket);*/
-
 	close(servSockD);
 }
-
-

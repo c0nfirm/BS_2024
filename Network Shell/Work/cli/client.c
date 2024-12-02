@@ -12,9 +12,40 @@
 #define PORT 9000
 #define HOST "127.0.0.1"
 #define MAX 128
+/*file size placeholder! Maybe get filesize and allocate it on the fly*/
+#define SIZE 1024
+
+void c_sendF(int sockD){
+	char data[SIZE] = {0}, buf[MAX];
+	FILE *fp;
+
+	printf("[-] buf: %s\n", buf);
+	recv(sockD, buf, sizeof(buf), 0);
+	printf("[-] buf: %s\n", buf);
+	strtok(buf, "\n");
+	printf("Data: %s\n", buf);
+	fp = fopen(buf, "r");
+	if(fp == NULL){
+		perror("[-] Error reading file");
+		exit(1);
+	}
+
+	printf("&>Uploading file to server... \n");
+	printf("Data: %s\n", data);
+	while(fgets(data, SIZE, fp) != NULL){
+		printf("[-] data: %s\n", data);
+		if(send(sockD, data, sizeof(data), 0) == -1){
+			printf("[-] error\n");
+			perror("[-] Error in sending file.");
+			exit(1);
+		}
+		bzero(data, SIZE);
+	}
+	fclose(fp);
+}
 
 void func (int sockD){
-	char buf[MAX];
+	char buf[MAX], tmp[MAX];
 	int n;
 
 	/*infinite loop*/
@@ -22,10 +53,22 @@ void func (int sockD){
 		printf("$> ");
 		/*clears any data in buf by overwriting it with zero "\0" */
 		bzero(buf, sizeof(buf));
+		bzero(tmp, sizeof(tmp));
 		
 		n = 0;
 		while((buf[n++] = getchar()) != '\n');
-		
+
+		/*catch put*/
+		if(memcmp("put ", buf,  4) == 0){
+			send(sockD, buf, sizeof(buf), 0);
+			printf("Msg to sev: %s", buf);
+			bzero(buf, MAX);
+			c_sendF(sockD);
+
+			bzero(buf, sizeof(buf));
+			continue;
+		}
+
 		//write(sockD, buf, sizeof(buf));
 		send(sockD, buf, sizeof(buf), 0);
 		printf("Msg to sev: %s", buf);
@@ -74,9 +117,7 @@ int main(int argc, char const* argv[]){
 	close(sockD);
 }
 
-
 /*TODO - focus s/c verhalten
-CD <Pfad>- wechshel des aktuellen verzeichnisses
-EXIT - disconnect client <> server
 GET <Pfad> - dl Datei < server
-PUT <Pfad> - ul Datei > server*/
+PUT <Pfad> - ul Datei > server
+<prog ausführen>*/
