@@ -12,8 +12,24 @@
 #define PORT 9000
 #define HOST "127.0.0.1"
 #define MAX 128
-/*file size placeholder! Maybe get filesize and allocate it on the fly*/
 #define FMAX 1024
+
+/*unused way to get file size
+long get_file_size(char *filename){
+	FILE *fp = fopen(filename, "r");
+	if (fp==NULL)
+		return -1;
+	
+	if (fseek(fp, 0, SEEK_END) < 0) {
+		fclose(fp);
+		return -1;
+	}
+
+	long size = ftell(fp);
+
+	fclose(fp);
+	return size;
+}*/
 
 void read_f(char *f_name, int c_cocked){
 	FILE *fd;
@@ -28,25 +44,39 @@ void read_f(char *f_name, int c_cocked){
 	/*reads file line and send's it to the client*/
 	while(fgets(f_buf, FMAX, fd) != NULL){
 		printf("[+] bf_buf:  %s\n", f_buf);
-		send(c_cocked, f_buf, sizeof(FMAX), 0);
+		send(c_cocked, f_buf, sizeof(f_buf), 0);
 		printf("[+] af_buf:  %s\n", f_buf);
 	}
+	send(c_cocked, "\0", 1, 0);
 	fclose(fd);
 }
 
-void write_f(char *f_name, FILE *fd, int c_socked){
+void write_f(char *f_name, int c_socked){
+	FILE *fd;
+	char f_buf[FMAX], f_tnt[FMAX];
 	fd = fopen(f_name, "w"); /*write*/
-	char f_buf[FMAX];
+	bzero(f_buf, FMAX);
+
 	if(fd == NULL){
 		printf("[-]Error: Could not open File!\n");
 		exit(-1);
 	}
 
 	for(;;){
-		recv(c_socked, f_buf, sizeof(FMAX), 0);
-		if(fprintf(fd,"%s", f_buf) < 0){
+		printf("[+] bf_buf:  %s\n", f_buf);
+		recv(c_socked, f_buf, sizeof(f_buf), 0);
+		printf("[+] mf_buf:  %s\n", f_buf);
+		if(memcmp("\0", f_buf, 1) == 0){
+			printf("BREAK\n");
 			break;
 		}
+		if(fprintf(fd,"%s", f_buf) < 0){
+			printf("ERSTES IF\n");
+			break;
+		}
+		printf("[+] af_buf:  %s\n", f_buf);
+			
+		bzero(f_buf, FMAX);
 	}
 	fclose(fd);
 }
@@ -66,7 +96,7 @@ void func (int sockD){
 
 		/*catch put*/
 		if(memcmp("put ", buf,  4) == 0){
-			/*send imput to server*/
+			/*send input to server*/
 			send(sockD, buf, sizeof(buf), 0);
 			printf("Msg to sev: %s", buf);
 			bzero(buf, MAX);
@@ -74,6 +104,21 @@ void func (int sockD){
 			/*gets's filename to upload to server*/
 			recv(sockD, buf, sizeof(buf), 0);
 			read_f(buf, sockD);
+			bzero(buf, MAX);
+
+			continue;
+		}
+
+		/*catch get*/
+		if(memcmp("get ", buf,  4) == 0){
+			/*receive input from server*/
+			send(sockD, buf, sizeof(buf), 0);
+			printf("Msg to sev: %s", buf);
+			bzero(buf, MAX);
+			
+			/*gets's filename to upload to server*/
+			recv(sockD, buf, sizeof(buf), 0);
+			write_f(buf, sockD);
 			bzero(buf, MAX);
 
 			continue;

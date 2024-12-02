@@ -30,7 +30,7 @@ void read_f(char *f_name,FILE *fd, int c_cocked){
 }
 void write_f(char *f_name, int c_socked){
 	FILE *fd;
-	char f_buf[FMAX];
+	char f_buf[FMAX], f_tnt[FMAX];
 	fd = fopen(f_name, "w"); /*write*/
 	bzero(f_buf, FMAX);
 
@@ -41,10 +41,26 @@ void write_f(char *f_name, int c_socked){
 
 	for(;;){
 		printf("[+] bf_buf:  %s\n", f_buf);
-		
-		recv(c_socked, f_buf, sizeof(f_buf), MSG_FIN);
+		/**int total_recv = 0, total_send = 0;
+		while(1){
+			total_recv = recv(c_socked, f_buf, FMAX, 0);
+			printf("OK\n");
+			total_send = recv(c_socked, f_tnt, sizeof(f_tnt), 0);
+			printf("OK\n");
+			if (total_recv == total_send)
+			{
+				break;
+			}
+			
+		}**/
+		recv(c_socked, f_buf, sizeof(f_buf), 0);
 		printf("[+] mf_buf:  %s\n", f_buf);
+		if(memcmp("\0", f_buf, 1) == 0){
+			printf("BREAK\n");
+			break;
+		}
 		if(fprintf(fd,"%s", f_buf) < 0){
+			printf("ERSTES IF\n");
 			break;
 		}
 		printf("[+] af_buf:  %s\n", f_buf);
