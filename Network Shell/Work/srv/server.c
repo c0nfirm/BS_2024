@@ -40,8 +40,8 @@ void func(int c_socked){
 				}
 			}
 			pclose(out);
-
 			send(c_socked, buf, sizeof(buf), 0);
+			continue;
 		}
 		/* cd <path> - command from client*/
 		if(memcmp("cd ",buf, 3) == 0 || memcmp("cd\n", buf, 3) == 0){
@@ -70,41 +70,55 @@ void func(int c_socked){
 					}
 				}
 			}
+			continue;
 		}
 		/* get <file> - command from client*/
 		if(strncmp("get ",buf, 4) == 0){
   			bzero(buf, MAX);
 			strcpy(buf, "get");
 			send(c_socked, buf, sizeof(buf), 0);
+			continue;
 		}
 		/* put <file> - command from client*/
 		if(strncmp("put ",buf, 4) == 0){
 			bzero(buf, MAX);
 			strcpy(buf, "put");
 			send(c_socked, "successful", sizeof(buf), 0);
+			continue;
 		}
 		/* ./<prog> - command from client*/
 		if(strncmp("./",buf, 2) == 0){
 			bzero(buf, MAX);
 			strcpy(buf, "./<prog>");
 			send(c_socked, buf, sizeof(buf), 0);
+			continue;
 		}
 		/* exit - command from client*/
 		if(strncmp("exit\n",buf, 5) == 0){
 			bzero(buf, MAX);
 			strcpy(buf, "exit");
 			send(c_socked, buf, sizeof(buf), 0);
+			break;
+		}else{
+			bzero(buf, MAX);
+			strcpy(buf, "Falsche oder Leere eingabe!\n");
+			send(c_socked, buf, sizeof(buf), 0);
 		}
+
 	}
 }
 
 int main(int argc, char const* argv[]){
 	/*create server socket similar to client socket*/
 	int servSockD = socket(AF_INET, SOCK_STREAM, 0);
+	
+	/*server console input*/
+	char m_buf[MAX];
+	int n;
 
 	/*data sent to client*/
 	char serMsg[255] = " \'Hello Client\' ", strData[255];
-	//char m_buf[MAX];int n;
+	
 
 	/*define server addr*/
 	struct sockaddr_in serv_Addr;
@@ -115,31 +129,40 @@ int main(int argc, char const* argv[]){
 	/*bind socket to specified IP and Port*/
 	bind(servSockD, (struct sockaddr*) &serv_Addr, sizeof(serv_Addr));
 
-	/*listen for connections*/
+	for(;;){
+		/*listen for connections*/
+		printf("Waiting for connection...\n");
+		listen(servSockD, 1);
+		
+	
+		/*INT to hold client socket*/
+		int c_socket = accept(servSockD, NULL, NULL);
+
+		/*send sever msg to client socket*/
+		send(c_socket, serMsg, sizeof(serMsg), 0);
+
+		/*command to server | recv = rectrieve data*/
+		recv(c_socket, strData, sizeof(strData), 0);
+		printf("Message: %s\n", strData);
+
+		/*server --> client functions*/
+		printf("&> test_bf_func\n");
+		func(c_socket);
+
+		printf("If you want to close the server type 'exit'!\n");
+		printf("Else enter any Input\n");
+		n = 0;
+		while((m_buf[n++] = getchar()) != '\n');
+		if(strncmp("exit\n",m_buf, 5) == 0){
+			printf("Server Closed!\n");
+			bzero(m_buf, MAX);
+			break;
+		}
+	}
+
+	/*listen for connections
 	listen(servSockD, 1);
 
-	/*INT to hold client socket*/
-	int c_socket = accept(servSockD, NULL, NULL);
-
-	/*send sever msg to client socket*/
-	send(c_socket, serMsg, sizeof(serMsg), 0);
-
-	/*command to server | recv = rectrieve data*/
-	recv(c_socket, strData, sizeof(strData), 0);
-	printf("Message: %s\n", strData);
-	
-	/*server --> client functions*/
-	printf("&> test_bf_func");
-	func(c_socket);
-
-	close(servSockD);
-}
-
-
-/*while(;;){
-	listen for connections
-	listen(servSockD, 1);
-	
 	INT to hold client socket
 	int c_socket = accept(servSockD, NULL, NULL);
 
@@ -149,16 +172,12 @@ int main(int argc, char const* argv[]){
 	command to server | recv = rectrieve data
 	recv(c_socket, strData, sizeof(strData), 0);
 	printf("Message: %s\n", strData);
-
+	
 	server --> client functions
 	printf("&> test_bf_func");
-	func(c_socket);
+	func(c_socket);*/
 
-	n = 0;
-		while((m_buf[n++] = getchar()) != '\n');
-		if(strncmp("exit\n",m_buf, 5) == 0){
-			printf("Server Closed");
-			bzero(m_buf, MAX);
-			break;
-		}
-}*/
+	close(servSockD);
+}
+
+
