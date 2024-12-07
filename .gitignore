@@ -1,2 +1,11 @@
 
 Shell/old/
+*.d
+*.o
+*.a
+Network Shell/Work/.srv_pid
+Network Shell/Work/client
+Network Shell/Work/server
+ALTE ABGABE/cli/client
+/Network Shell/save
+Network Shell/Work/test.txt
