@@ -43,9 +43,7 @@ void read_f(char *f_name, int c_cocked){
 	bzero(f_buf, FMAX);
 	/*reads file line and send's it to the client*/
 	while(fgets(f_buf, FMAX, fd) != NULL){
-		printf("[+] bf_buf:  %s\n", f_buf);
 		send(c_cocked, f_buf, sizeof(f_buf), 0);
-		printf("[+] af_buf:  %s\n", f_buf);
 	}
 	send(c_cocked, "\0", 1, 0);
 	fclose(fd);
@@ -53,7 +51,7 @@ void read_f(char *f_name, int c_cocked){
 
 void write_f(char *f_name, int c_socked){
 	FILE *fd;
-	char f_buf[FMAX], f_tnt[FMAX];
+	char f_buf[FMAX];
 	fd = fopen(f_name, "w"); /*write*/
 	bzero(f_buf, FMAX);
 
@@ -63,18 +61,13 @@ void write_f(char *f_name, int c_socked){
 	}
 
 	for(;;){
-		printf("[+] bf_buf:  %s\n", f_buf);
 		recv(c_socked, f_buf, sizeof(f_buf), 0);
-		printf("[+] mf_buf:  %s\n", f_buf);
 		if(memcmp("\0", f_buf, 1) == 0){
-			printf("BREAK\n");
 			break;
 		}
 		if(fprintf(fd,"%s", f_buf) < 0){
-			printf("ERSTES IF\n");
 			break;
 		}
-		printf("[+] af_buf:  %s\n", f_buf);
 			
 		bzero(f_buf, FMAX);
 	}
@@ -98,7 +91,7 @@ void func (int sockD){
 		if(memcmp("put ", buf,  4) == 0){
 			/*send input to server*/
 			send(sockD, buf, sizeof(buf), 0);
-			printf("Msg to sev: %s", buf);
+			//printf("Msg to sev: %s", buf);
 			bzero(buf, MAX);
 			
 			/*gets's filename to upload to server*/
@@ -113,7 +106,7 @@ void func (int sockD){
 		if(memcmp("get ", buf,  4) == 0){
 			/*receive input from server*/
 			send(sockD, buf, sizeof(buf), 0);
-			printf("Msg to sev: %s", buf);
+			//printf("Msg to sev: %s", buf);
 			bzero(buf, MAX);
 			
 			/*gets's filename to upload to server*/
@@ -126,16 +119,16 @@ void func (int sockD){
 
 		//write(sockD, buf, sizeof(buf));
 		send(sockD, buf, sizeof(buf), 0);
-		printf("Msg to sev: %s", buf);
+		//printf("Msg to sev: %s", buf);
 		bzero(buf, sizeof(buf));
 		
 		recv(sockD, buf, sizeof(buf), 0);
-		printf("From Server: %s", buf);
-
+		//printf("From Server: %s", buf);
 		if((strncmp(buf, "exit", 4)) == 0){
 			printf("Client Exit...\n");
 			break;
 		}
+		printf("%s", buf);
 	}
 }
 
@@ -159,7 +152,7 @@ int main(int argc, char const* argv[]){
 		char strData[255];
 		/*command to server | recv = rectrieve data*/
 		recv(sockD, strData, sizeof(strData), 0);
-		printf("Message: %s\n", strData);
+		//printf("Message: %s\n", strData);
 		
 		/*send sever msg to client socket*/
 		send(sockD, cliMsg, sizeof(cliMsg), 0)
@@ -171,8 +164,3 @@ int main(int argc, char const* argv[]){
 	/*close the socket*/
 	close(sockD);
 }
-
-/*TODO - focus s/c verhalten
-GET <Pfad> - dl Datei < server
-PUT <Pfad> - ul Datei > server
-<prog ausführen>*/

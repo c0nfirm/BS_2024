@@ -13,7 +13,8 @@
 #define MAX 128
 #define FMAX 1024
 
-void read_f(char *f_name,FILE *fd, int c_cocked){
+void read_f(char *f_name, int c_cocked){
+	FILE *fd;
 	fd = fopen(f_name, "r"); /*read*/
 	char f_buf[FMAX];
 	if(fd == NULL){
@@ -21,16 +22,20 @@ void read_f(char *f_name,FILE *fd, int c_cocked){
 		exit(-1);
 	}
 
+	bzero(f_buf, FMAX);
 	/*reads file line and send's it to the client*/
-	while(fgets(f_buf, FMAX, fd) != 0){
-		send(c_cocked, f_buf, sizeof(FMAX), 0);
-		/*Do something with files*/
+	while(fgets(f_buf, FMAX, fd) != NULL){
+		printf("[+] bf_buf:  %s\n", f_buf);
+		send(c_cocked, f_buf, sizeof(f_buf), 0);
+		printf("[+] af_buf:  %s\n", f_buf);
 	}
+	send(c_cocked, "\0", 1, 0);
 	fclose(fd);
 }
+
 void write_f(char *f_name, int c_socked){
 	FILE *fd;
-	char f_buf[FMAX], f_tnt[FMAX];
+	char f_buf[FMAX];
 	fd = fopen(f_name, "w"); /*write*/
 	bzero(f_buf, FMAX);
 
@@ -135,7 +140,24 @@ void func(int c_socked){
 		}
 		/* get <file> - command from client*/
 		if (memcmp("get ", buf, 4) == 0){
+			char f_path[MAX];
+
+			/*cut prefix 'put ' from string*/
+			strcpy(f_path, buf);
+			size_t len = strlen(f_path);
+			memmove(f_path, f_path + 4, len - 4 + 1);
+			printf("abgeschnitten: %s\n", f_path);
+			strtok(f_path, "\n");
+			printf("[+] f_path:  %s\n", f_path);
 			bzero(buf, MAX);
+
+			/*send only filename/path back to client*/
+			printf("[+] f_path:  %s\n", f_path);
+			send(c_socked, f_path, sizeof(f_path), 0);
+			printf("[+] f_path:  %s\n", f_path);
+			/*writes from client file to server file*/
+			read_f(f_path, c_socked);
+
 			strcpy(buf, "get");
 			send(c_socked, buf, sizeof(buf), 0);
 			continue;
