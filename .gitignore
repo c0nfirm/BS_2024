@@ -1,2 +1,9 @@
 
 Shell/old/
+Network Shell/Work/srv/server.o
+*.o
+*.d
+*.a
+/ALTE ABGABE
+Network Shell/Work/client
+Network Shell/Work/server
