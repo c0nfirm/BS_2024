@@ -1,7 +1,50 @@
 #ifndef THREADPOOL_H_INCLUDED
 #define THREADPOOL_H_INCLUDED
 
+#include <pthread.h>
 #include <stddef.h>
+
+
+struct threadpool{
+	int num_threads;
+	int active;
+
+	/*Data structure needed (struct Queue work;)*/
+	struct Queue work;
+
+	pthread_t *pool;
+	pthread_mutex_t lock;
+	pthread_cond_t signal;
+};
+
+struct threadJob{
+	void * (*job)(void *arg);
+	void *arg;
+};
+
+struct threadpool thread_poool_constructor(int num_thread);
+struct threadJob thread_job_constructor(void * (*job_func)(void *arg), void *arg);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**@brief Funktionszeiger auf eine asynchron auszuführende Funktion.
  * 
